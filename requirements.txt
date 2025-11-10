@@ -1,0 +1,20 @@
+# Main Dependencies 
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+sqlalchemy==0.0.22
+psycopg2-binary==2.9.9
+alembic==1.13.2
+celery[redis]==5.4.0
+redis==5.0.8
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.9
+pydantic==2.9.2
+prometheus-fastapi-instrumentator==0.19.0
+opentelemetry-api==1.27.0
+opentelemetry-sdk==1.27.0
+opentelemetry-instrumentation-fastapi==0.48b0
+httpx==0.27.0
+
+# Dev Dependencies 
+flower==2.0.1
