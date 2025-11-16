@@ -4,7 +4,7 @@ from app.api.v1.schemas import TransactionCreate, TransactionOut
 from app.services.transaction_service import create_transaction
 from app.db.session import get_db
 
-router = APIRouter()
+router = APIRouter(prefix="transactions",tags=["Transaction"])
 
 @router.post("/transactions", response_model=TransactionOut)
 def post_transaction(payload: TransactionCreate, db: Session = Depends(get_db)):
