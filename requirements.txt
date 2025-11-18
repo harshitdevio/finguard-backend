@@ -15,6 +15,7 @@ opentelemetry-api==1.27.0
 opentelemetry-sdk==1.27.0
 opentelemetry-instrumentation-fastapi==0.48b0
 httpx==0.27.0
+asyncpg==0.30.0
 
 # Dev Dependencies 
 flower==2.0.1
