@@ -37,5 +37,6 @@ build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 dev = [
-    "flower (==2.0.1)"
+    "flower (==2.0.1)",
+    "pytest (>=9.0.1,<10.0.0)"
 ]
