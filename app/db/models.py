@@ -75,7 +75,7 @@ class Transaction(Base):
     sender_account: Mapped[UUID] = mapped_column(ForeignKey("accounts.id"))
     receiver_account: Mapped[UUID] = mapped_column(ForeignKey("accounts.id"))
     amount: Mapped[Decimal] = mapped_column(Numeric(20, 6), nullable=False)
-    currency: Mapped[str] = mapped_column(String, nullable=False)
+    currency: Mapped[CurrencyCode] = mapped_column(String, nullable=False)
     status: Mapped[TransactionStatus] = mapped_column(
         Enum(TransactionStatus), default=TransactionStatus.PENDING
     )
