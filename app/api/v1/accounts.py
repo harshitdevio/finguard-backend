@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.api.v1.schemas import AccountCreate, AccountOut
+from app.schemas.account_schemas import AccountCreate, AccountOut
 from app.db.models import Account
 from app.db.session import get_db
 from uuid import uuid4
