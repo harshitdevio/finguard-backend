@@ -21,9 +21,15 @@ class AuditLog(Base):
     action = Column(String(100), nullable=False, index=True)
 
     object_type = Column(String(50), nullable=False, index=True) 
-    
+
     object_id = Column(UUID(as_uuid=True), nullable=False, index=True)
 
     payload = Column(JSONB, default=dict, nullable=False)
 
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+
+    __table_args__ = (
+        Index('idx_audit_actor_action', 'actor', 'action'),
+        Index('idx_audit_object', 'object_type', 'object_id'),
+        Index('idx_audit_created_at', 'created_at'),
+    )
