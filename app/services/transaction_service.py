@@ -3,8 +3,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from uuid import uuid4
 
-from app.db.models import Transaction, Account, LedgerEntry, TransactionStatus
-
+from app.db.enums import TransactionStatus
+from app.db.models.transaction import Transaction
+from app.db.models.account import Account
+from app.db.models.ledger_entry import LedgerEntry
 
 async def create_transaction(db: AsyncSession, payload):
     # Step 1 — Check idempotency_key
