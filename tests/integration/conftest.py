@@ -27,6 +27,22 @@ def event_loop():
     loop.close()
 
 
+@pytest.fixture(scope="session")
+async def test_engine():
+    """
+    A dedicated engine for integration tests.
+    Real Postgres running in Docker.
+    """
+    engine = create_async_engine(
+        TEST_DATABASE_URL,
+        echo=False,
+        pool_pre_ping=True,
+        future=True,
+    )
+    yield engine
+    await engine.dispose()
+
+
 # FastAPI App + Override get_db
 @pytest.fixture()
 def integration_app(async_db) -> FastAPI:
