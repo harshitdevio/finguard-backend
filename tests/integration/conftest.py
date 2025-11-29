@@ -13,9 +13,15 @@ try:
 except Exception as e:
     print("ERROR importing settings:", e)
 
+# test DB config(Docker Postgres)
+TEST_DATABASE_URL = (
+    settings.TEST_DATABASE_URL
+    if hasattr(settings, "TEST_DATABASE_URL")
+    else "postgresql+asyncpg://postgres:postgres@localhost:5433/testdb"
+)
+
 
 # FastAPI App + Override get_db
-
 @pytest.fixture()
 def integration_app(async_db) -> FastAPI:
     """
