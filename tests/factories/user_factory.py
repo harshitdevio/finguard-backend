@@ -4,3 +4,15 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.user import User
+
+# Base user factory
+class UserFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = User
+        sqlalchemy_session_persistence = "flush"  
+
+    # Fixed defaults
+    id = factory.LazyFunction(uuid4)
+    email = "testuser@example.com"
+    hashed_password = "plainpassword123"  
+    created_at = factory.LazyFunction(datetime.utcnow)
