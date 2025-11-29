@@ -20,3 +20,14 @@ class AccountFactory(factory.alchemy.SQLAlchemyModelFactory):
     created_at = factory.LazyFunction(datetime.utcnow)
 
     user_id = None  
+
+
+# 2. Async helper to insert account into test DB
+async def create_account(db: AsyncSession, user: User, **kwargs) -> Account:
+    if "user_id" not in kwargs:
+        kwargs["user_id"] = user.id
+
+    account = AccountFactory(**kwargs)
+    db.add(account)
+    await db.flush()  # flush so SQLAlchemy generates IDs
+    return account
