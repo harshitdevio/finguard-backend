@@ -16,3 +16,10 @@ class UserFactory(factory.alchemy.SQLAlchemyModelFactory):
     email = "testuser@example.com"
     hashed_password = "plainpassword123"  
     created_at = factory.LazyFunction(datetime.utcnow)
+
+# Async helper to insert user into test DB
+async def create_user(db: AsyncSession, **kwargs) -> User:
+    user = UserFactory(**kwargs)
+    db.add(user)
+    await db.flush()  # flush so SQLAlchemy generates IDs, etc.
+    return user
