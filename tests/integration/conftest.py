@@ -107,3 +107,17 @@ async def integration_client(integration_app: FastAPI):
         follow_redirects=True,
     ) as client:
         yield client
+
+
+@pytest.fixture(autouse=True)
+async def clean_state(async_db: AsyncSession):
+    """
+    Runs before & after each test.
+    Ensures no leftover state leaks.
+    Especially important in Fintech systems.
+    """
+    try:
+        yield
+    finally:
+        await async_db.rollback()
+        await async_db.expire_all()
