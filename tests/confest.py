@@ -41,3 +41,25 @@ def postgres_container():
         detach=True,
         auto_remove=True,
     )
+
+    time.sleep(2)
+    retries = 10
+    while retries:
+        try:
+            import psycopg2
+            psycopg2.connect(
+                host="localhost",
+                port=5433,
+                user="test",
+                password="test",
+                database="test_db"
+            )
+            break
+        except Exception:
+            retries -= 1
+            time.sleep(1)
+
+    if retries == 0:
+        raise RuntimeError("Postgres test container did not start in time")
+
+    yield container
