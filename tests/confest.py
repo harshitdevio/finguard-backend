@@ -63,3 +63,25 @@ def postgres_container():
         raise RuntimeError("Postgres test container did not start in time")
 
     yield container
+
+# DATABASE ENGINE (async)
+async def test_engine(postgres_container):
+    test_db_url = (
+        "postgresql+asyncpg://test:test@localhost:5433/test_db"
+    )
+
+    engine = create_async_engine(
+        test_db_url,
+        echo=False,
+        future=True,
+        pool_pre_ping=True,
+    )
+
+    # Create full schema for test database
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+
+    yield engine
+
+    await engine.dispose()
