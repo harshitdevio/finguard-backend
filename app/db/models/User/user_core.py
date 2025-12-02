@@ -30,3 +30,15 @@ class User(Base):
         default=datetime.utcnow,
         onupdate=datetime.utcnow
     )
+
+    # Relationships
+    auth: Mapped["UserAuth"] = relationship(                 # pyright: ignore
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
+    kyc: Mapped["UserKYC"] = relationship(                  # pyright: ignore
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )

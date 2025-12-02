@@ -24,3 +24,6 @@ class UserAuth(Base):
     is_locked: Mapped[bool] = mapped_column(Boolean, default=False)
 
     password_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    
+    user: Mapped["User"] = relationship(back_populates="auth")  # pyright: ignore
