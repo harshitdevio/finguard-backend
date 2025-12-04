@@ -18,6 +18,15 @@ from app.db.base import Base
 import app.db.models
 from app.main import app as fastapi_app  
 
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+user = os.getenv("TEST_POSTGRES_USER")
+password = os.getenv("TEST_POSTGRES_PASSWORD")
+db = os.getenv("TEST_POSTGRES_DB")
+
 
 @pytest.fixture(scope="session")
 def event_loop():
@@ -68,7 +77,7 @@ def postgres_container():
 # Database Engine (async)
 async def test_engine(postgres_container):
     test_db_url = (
-        "postgresql+asyncpg://test:test@localhost:5433/test_db"
+        f"postgresql+asyncpg://{user}:{password}@localhost:5433/{db}"
     )
 
     engine = create_async_engine(
