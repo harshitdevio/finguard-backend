@@ -1,5 +1,27 @@
 from pydantic import BaseModel, Field
-from datetime import date
+from datetime import date, datetime
+from typing import Optional, Literal
+
+
+class KYCStatusOutput(BaseModel):
+    kyc_status: Literal["pending", "verified", "rejected"] = Field(
+        ..., description="Current KYC state of the user"
+    )
+    is_kyc_complete: bool = Field(
+        ..., description="Boolean flag to simplify frontend checks"
+    )
+    submitted_at: Optional[datetime] = Field(
+        None, description="When user submitted KYC information"
+    )
+    verified_at: Optional[datetime] = Field(
+        None, description="When KYC was approved (only for verified state)"
+    )
+    rejection_reason: Optional[str] = Field(
+        None, description="Reason for failure (only for rejected state)"
+    )
+
+    class Config:
+        from_attributes = True
 
 class KYCBasicDetails(BaseModel):
     first_name: str = Field(
@@ -52,3 +74,24 @@ class KYCBasicDetails(BaseModel):
         const=True,
         description="Country fixed as India"
     )
+
+
+class KYCStatusOutput(BaseModel):
+    kyc_status: Literal["pending", "verified", "rejected"] = Field(
+        ..., description="Current KYC state of the user"
+    )
+    is_kyc_complete: bool = Field(
+        ..., description="Boolean flag to simplify frontend checks"
+    )
+    submitted_at: Optional[datetime] = Field(
+        None, description="When user submitted KYC information"
+    )
+    verified_at: Optional[datetime] = Field(
+        None, description="When KYC was approved (only for verified state)"
+    )
+    rejection_reason: Optional[str] = Field(
+        None, description="Reason for failure (only for rejected state)"
+    )
+
+    class Config:
+        from_attributes = True
