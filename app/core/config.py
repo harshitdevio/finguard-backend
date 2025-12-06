@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD:str
     POSTGRES_DB:str
     SECRET_KEY: str 
+
+    TEST_POSTGRES_USER=str
+    TEST_POSTGRES_PASSWORD=str
+    TEST_POSTGRES_DB=str
     class Config: 
         env_file = ".env"
         env_file_encoding = "utf-8"
