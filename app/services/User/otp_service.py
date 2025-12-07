@@ -31,3 +31,17 @@ async def send_otp(phone: str):
     return True
 
 
+async def verify_otp(phone: str, user_otp: str):
+    otp_key = f"otp:{phone}"
+    saved = await redis_client.get(otp_key)
+
+    if not saved:
+        return False
+
+    if saved != user_otp:
+        return False
+
+    # OTP correct → delete it
+    await redis_client.delete(otp_key)
+
+    return True
