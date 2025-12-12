@@ -10,7 +10,7 @@ OTP_VERIFY_WINDOW = 15 * 60
 OTP_LOCKOUT_TTL = 60 * 60            
 
 class OTPRateLimitExceeded(Exception):
-    pass
+    """Raised when the user exceeds the allowed OTP request limit."""
 
 class OTPException(Exception):
     """Base OTP exception."""
