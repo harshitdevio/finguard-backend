@@ -2,6 +2,7 @@ from typing import Final
 
 from app.core.redis import redis_client
 from app.core.securities import generate_otp
+from app.interegation.SMS.base import ConsoleSMSProvider
 from app.auth.OTP.bruteforce import (
     is_locked,
     _increment_failed_attempts,
@@ -52,7 +53,9 @@ async def send_otp(phone: str) -> bool:
     otp_key = f"otp:{phone}"
     await redis_client.set(otp_key, otp, ex=OTP_EXPIRY)
 
-    print(f"SMS to {phone}: {otp}")
+    sms_provider = ConsoleSMSProvider()
+
+    await sms_provider.send(phone, f"Your OTP is {otp}")
 
     return True
 
