@@ -3,6 +3,7 @@ from typing import Final
 from app.core.redis import redis_client
 from app.core.securities import generate_otp
 from app.interegation.SMS.base import ConsoleSMSProvider
+from app.core.Utils.phone import normalize_phone
 from app.auth.OTP.bruteforce import (
     is_locked,
     _increment_failed_attempts,
@@ -37,6 +38,7 @@ async def send_otp(phone: str) -> bool:
     Returns:
         True if OTP generation and storage succeeds.
     """
+    phone = normalize_phone(phone)
     #Check rate limit
     count_key = f"otp_count:{phone}"
     request_count: int = await redis_client.incr(count_key)
@@ -72,6 +74,7 @@ async def verify_otp(phone: str, user_otp: str) -> bool:
     Returns:
         True if OTP verification succeeds.
     """
+    phone = normalize_phone(phone)
     if await is_locked(phone):
         raise OTPLocked(
             "Too many failed verification attempts. Try later."
