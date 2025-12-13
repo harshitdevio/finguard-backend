@@ -15,3 +15,6 @@ class OTPExpired(OTPException):
 
 class OTPMismatch(OTPException):
     """Raised when OTP does not match."""
+
+class OTPRateLimitExceeded(Exception):
+    pass
