@@ -79,3 +79,37 @@ async def test_send_otp_rate_limit_exceeded(mocker):
     sms_send.assert_not_called()
 
 
+@pytest.mark.asyncio
+async def test_send_otp_sets_correct_ttl(mocker):
+    phone = "+919876543210"
+    otp = "654321"
+
+    mocker.patch(
+        "app.auth.OTP.service.normalize_phone",
+        return_value=phone
+    )
+    mocker.patch(
+        "app.auth.OTP.service.enforce_otp_rate_limit",
+        new=AsyncMock()
+    )
+    mocker.patch(
+        "app.auth.OTP.service.generate_otp",
+        return_value=otp
+    )
+
+    redis_set = mocker.patch(
+        "app.auth.OTP.service.redis_client.set",
+        new=AsyncMock()
+    )
+
+    mocker.patch(
+        "app.auth.OTP.service.ConsoleSMSProvider.send",
+        new=AsyncMock()
+    )
+
+    await send_otp(phone)
+
+    _, kwargs = redis_set.call_args
+    assert kwargs["ex"] == OTP_EXPIRY
+
+
