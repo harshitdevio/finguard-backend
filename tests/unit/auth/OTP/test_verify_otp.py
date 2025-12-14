@@ -195,3 +195,31 @@ async def test_verify_otp_deletes_otp_after_success(mocker):
     await verify_otp(phone, "222222")
 
     redis_delete.assert_called_once_with(f"otp:{phone}")
+
+
+@pytest.mark.asyncio
+async def test_verify_otp_eventually_locks_after_max_attempts(mocker):
+    phone = "+919876543210"
+
+    mocker.patch(
+        "app.auth.OTP.otp_service.normalize_phone",
+        return_value=phone
+    )
+
+    mocker.patch(
+        "app.auth.OTP.otp_service.is_locked",
+        new=AsyncMock(return_value=False)
+    )
+
+    mocker.patch(
+        "app.auth.OTP.otp_service.redis_client.get",
+        new=AsyncMock(return_value="333333")
+    )
+
+    mocker.patch(
+        "app.auth.OTP.otp_service._increment_failed_attempts",
+        new=AsyncMock(return_value=OTP_VERIFY_MAX_ATTEMPTS)
+    )
+
+    with pytest.raises(OTPMismatch):
+        await verify_otp(phone, "000000")
