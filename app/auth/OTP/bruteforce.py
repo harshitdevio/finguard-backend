@@ -1,5 +1,5 @@
 from redis.asyncio import client as redis_client
-from app.auth.OTP.otp_exceptions import OTP_VERIFY_MAX_ATTEMPTS, OTP_VERIFY_WINDOW, OTP_LOCKOUT_TTL
+from app.core.security.otp import OTP_VERIFY_MAX_ATTEMPTS, OTP_VERIFY_WINDOW, OTP_LOCKOUT_TTL
 async def _increment_failed_attempts(phone: str) -> int:
     """Increment the failed attempts counter and set expire. If threshold reached, set lock key."""
     attempts_key = f"otp_failed:{phone}"
