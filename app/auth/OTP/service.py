@@ -7,6 +7,7 @@ from app.core.security.masking import _mask_phone
 from app.core.logging import get_logger
 from app.auth.OTP.rate_limit import enforce_otp_rate_limit
 from app.core.security.hashing import hash_otp
+from app.core.security.hashing.otp import verify_otp as hash_verify_otp
 
 from app.auth.OTP.bruteforce import (
     is_locked,
@@ -23,7 +24,9 @@ from app.auth.OTP.otp_exceptions import (
 from app.core.security.otp import (
     generate_otp,
     OTP_EXPIRY,
-    OTP_VERIFY_MAX_ATTEMPTS,
+    OTP_VERIFY_MAX_ATTEMPTS, 
+    OTP_LOCKOUT_TTL, 
+    OTP_VERIFY_WINDOW
 )
 
 logger = get_logger(__name__)
@@ -77,46 +80,74 @@ async def send_otp(phone: str) -> bool:
     return True
 
 
+
 async def verify_otp(phone: str, user_otp: str) -> bool:
     """
-    Verify OTP with brute-force protection.
+    Verify a One-Time Password (OTP) for a given phone number.
+
+    Implements:
+    - OTP hashing verification
+    - Constant-time comparison
+    - Attempt limits & lockout
+    - TTL enforcement
 
     Raises:
-        OTPLocked: If the phone number is locked due to excessive failures.
-        OTPExpired: If the OTP is expired or not found.
-        OTPMismatch: If the provided OTP is incorrect.
-
-    Returns:
-        True if OTP verification succeeds.
+        OTPLocked: If the phone is locked due to excessive failed attempts.
+        OTPExpired: If the OTP is missing or expired.
+        OTPMismatch: If the OTP does not match.
     """
     phone = normalize_phone(phone)
     masked_phone = _mask_phone(phone)
 
-    logger.info("OTP verification initiated", extra={"phone": masked_phone})
-
-    if await is_locked(phone):
-        logger.warning("OTP verification attempt blocked due to lock", extra={"phone": masked_phone})
-        raise OTPLocked("Too many failed verification attempts. Try later.")
-
     otp_key = f"otp:{phone}"
-    saved_otp: str | None = await redis_client.get(otp_key)
+    fail_key = f"otp_fail:{phone}"
+    lock_key = f"otp_lock:{phone}"
 
-    if not saved_otp:
-        attempts = await _increment_failed_attempts(phone)
-        logger.warning("OTP expired or missing", extra={"phone": masked_phone, "attempts": attempts})
-        raise OTPExpired("OTP expired or not found. Request a new OTP.")
-
-    if saved_otp != user_otp:
-        attempts: int = await _increment_failed_attempts(phone)
+    if await redis_client.exists(lock_key):
         logger.warning(
-            "Incorrect OTP attempt",
-            extra={"phone": masked_phone, "attempts": attempts, "max_attempts": OTP_VERIFY_MAX_ATTEMPTS}
+            "OTP verification blocked due to lockout",
+            extra={"phone": masked_phone}
         )
-        raise OTPMismatch(f"OTP incorrect. Attempt {attempts}/{OTP_VERIFY_MAX_ATTEMPTS}.")
+        raise OTPLocked()
+
+    stored_hash = await redis_client.get(otp_key)
+    if not stored_hash:
+        logger.warning(
+            "OTP expired or missing",
+            extra={"phone": masked_phone}
+        )
+        raise OTPExpired()
+
+    if not hash_verify_otp(
+        otp=user_otp,
+        identifier=phone,
+        stored_hash=stored_hash,
+    ):
+        # Increment fail counter
+        fail_count = await redis_client.incr(fail_key)
+        await redis_client.expire(fail_key, OTP_VERIFY_WINDOW)
+
+        if fail_count >= OTP_VERIFY_MAX_ATTEMPTS:
+            # Lock the phone for OTP_LOCKOUT_TTL
+            await redis_client.set(lock_key, "1", ex=OTP_LOCKOUT_TTL)
+            logger.warning(
+                "OTP verification failed: lockout triggered",
+                extra={"phone": masked_phone}
+            )
+            raise OTPLocked()
+
+        logger.warning(
+            "OTP verification failed",
+            extra={"phone": masked_phone, "fail_count": fail_count}
+        )
+        raise OTPMismatch()
 
     await redis_client.delete(otp_key)
-    await _clear_failed_attempts(phone)
+    await redis_client.delete(fail_key)
 
-    logger.info("OTP verified successfully", extra={"phone": masked_phone})
+    logger.info(
+        "OTP verified successfully",
+        extra={"phone": masked_phone}
+    )
 
     return True
