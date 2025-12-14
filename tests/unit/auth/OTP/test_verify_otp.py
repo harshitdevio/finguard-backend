@@ -94,3 +94,40 @@ async def test_verify_otp_incorrect_otp(mocker):
 
     assert "Attempt 2" in str(exc.value)
     increment_attempts.assert_called_once_with(phone)
+
+
+@pytest.mark.asyncio
+async def test_verify_otp_success(mocker):
+    phone = "+919876543210"
+    otp = "123456"
+
+    mocker.patch(
+        "app.auth.OTP.otp_service.normalize_phone",
+        return_value=phone
+    )
+
+    mocker.patch(
+        "app.auth.OTP.otp_service.is_locked",
+        new=AsyncMock(return_value=False)
+    )
+
+    mocker.patch(
+        "app.auth.OTP.otp_service.redis_client.get",
+        new=AsyncMock(return_value=otp)
+    )
+
+    redis_delete = mocker.patch(
+        "app.auth.OTP.otp_service.redis_client.delete",
+        new=AsyncMock()
+    )
+
+    clear_attempts = mocker.patch(
+        "app.auth.OTP.otp_service._clear_failed_attempts",
+        new=AsyncMock()
+    )
+
+    result = await verify_otp(phone, otp)
+
+    assert result is True
+    redis_delete.assert_called_once_with(f"otp:{phone}")
+    clear_attempts.assert_called_once_with(phone)
