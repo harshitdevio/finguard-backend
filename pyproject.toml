@@ -13,7 +13,7 @@ dependencies = [
     "celery (==5.3.6)",
     "redis (==5.0.1)",
     "python-jose[cryptography] (>=3.5.0,<4.0.0)",
-    "passlib[bcrypt] (>=1.7.4,<2.0.0)",
+    "passlib[argon2,bcrypt] (>=1.7.4,<2.0.0)",
     "python-multipart (>=0.0.20,<0.0.21)",
     "pydantic (>=2.12.4,<3.0.0)",
     "prometheus-fastapi-instrumentator (>=7.1.0,<8.0.0)",
