@@ -24,3 +24,18 @@ def hash_pin(pin: str) -> str:
     peppered = apply_pepper(pin, pepper)
 
     return _pin_context.hash(peppered)
+
+def verify_pin(pin: str, pin_hash: str) -> bool:
+    if not pin or not pin_hash:
+        return False
+
+    if not pin.isdigit():
+        return False
+
+    try:
+        pepper = get_pepper()
+        peppered = apply_pepper(pin, pepper)
+
+        return _pin_context.verify(peppered, pin_hash)
+    except UnknownHashError:
+        return False
