@@ -1,3 +1,24 @@
+"""
+Shared hashing primitives and security utilities.
+
+This module defines common building blocks used by all hashing components
+(passwords, PINs, OTPs) across the system.
+
+Responsibilities:
+- Loading and managing the global server-side pepper
+- Applying the pepper to secrets in a consistent, explicit manner
+- Providing constant-time comparison utilities
+- Defining the Hasher protocol used by hashing implementations
+
+Security notes:
+- The pepper is required to be present at runtime and the application
+  will fail fast if it is missing.
+- Pepper application uses an explicit boundary to avoid ambiguity.
+- All consumers are expected to treat this module as security-critical.
+
+This module intentionally contains no hashing algorithms itself.
+"""
+
 from __future__ import annotations
 
 import os
