@@ -1,8 +1,15 @@
-from fastapi import APIRouter
-from app.schemas.User.login import RequestOTP, VerifyOTP
-from app.services.OTP.otp_service import send_otp, verify_otp
+from fastapi import APIRouter, status
 
-router = APIRouter()
+from app.schemas.User.login import RequestOTP, VerifyOTP
+from app.orchestration.signup import UserOnboarding
+from app.auth.OTP.service import send_otp, verify_otp
+from app.schemas.User.signup import (
+    PhoneSubmitRequest,
+    PhoneSubmitResponse,
+)
+
+
+router = APIRouter(tags=["Auth"])
 
 @router.post("/send-otp")
 async def send_otp_route(payload: RequestOTP):
@@ -16,3 +23,7 @@ async def verify_otp_route(payload: VerifyOTP):
     if not valid:
         return {"valid": False}
     return {"valid": True}
+
+@router.post("/signup/phone", response_model=PhoneSubmitResponse)
+async def submit_phone(payload: PhoneSubmitRequest):
+    return await UserOnboarding.submit_phone(payload.phone)

@@ -34,3 +34,11 @@ class SignupProfileDetails(BaseModel):
     email: EmailStr = Field(
         ...
     )
+
+class PhoneSubmitRequest(BaseModel):
+    phone: str = Field(..., description="User phone number in E.164 or local format")
+
+
+class PhoneSubmitResponse(BaseModel):
+    phone: str
+    status: str
