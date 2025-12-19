@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 
 from sqlalchemy import (
@@ -76,3 +76,17 @@ class PreUser(Base):
             f"<PreUser id={self.id} phone={self.phone} "
             f"state={self.onboarding_state}>"
         )
+
+    date_of_birth: Mapped[Optional[date]] = mapped_column(
+        nullable=True
+    )
+
+    address: Mapped[Optional[str]] = mapped_column(
+        String(512),
+        nullable=True,
+    )
+
+    profile_completed_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )

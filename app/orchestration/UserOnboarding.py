@@ -1,4 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import date
 
 from app.auth.OTP.service import issue_otp
 from app.core.Utils.phone import normalize_phone
@@ -15,6 +16,11 @@ from app.services.User.preuser_credentials import (
     InvalidPreUserState,
     CredentialsAlreadySet,
 )
+from app.services.User.preuser_profile import (
+    complete_basic_profile,
+    ProfileAlreadyCompleted,
+    InvalidPreUserState as ProfileInvalidState,
+)
 
 class UserOnboardingError(Exception):
     pass
@@ -25,6 +31,9 @@ class PasswordAlreadySet(UserOnboardingError):
 
 
 class InvalidOnboardingState(UserOnboardingError):
+    pass
+
+class ProfileAlreadyCompletedError(UserOnboardingError):
     pass
 
 
@@ -56,21 +65,7 @@ class UserOnboarding:
         )
 
     @staticmethod
-    async def verify_otp(phone: str, otp: str) -> OTPVerifyResponse:
-        """
-        Step 4: OTP verification
-        """
-
-        await verify_otp_flow(phone=phone, otp=otp)
-
-        # OTP valid → orchestration can move to next step
-        return OTPVerifyResponse(
-            phone=phone,
-            status="OTP_VERIFIED",
-        )
-    
-    @staticmethod
-    async def verify_otp(
+    async def verify_otp_and_create_preuser(
         *,
         db: AsyncSession,
         phone: str,
@@ -117,4 +112,33 @@ class UserOnboarding:
         except CredentialsAlreadySet:
             raise PasswordAlreadySet()
         except InvalidPreUserState:
+            raise InvalidOnboardingState()
+        
+    @staticmethod
+    async def complete_basic_profile(
+        *,
+        db: AsyncSession,
+        phone: str,
+        first_name: str,
+        last_name: str,
+        date_of_birth: date,
+        address: str,
+    ) -> None:
+        """
+        Step 7:
+        - Complete basic profile details
+        """
+
+        try:
+            await complete_basic_profile(
+                db=db,
+                phone=phone,
+                first_name=first_name,
+                last_name=last_name,
+                date_of_birth=date_of_birth,
+                address=address,
+            )
+        except ProfileAlreadyCompleted:
+            raise ProfileAlreadyCompletedError()
+        except ProfileInvalidState:
             raise InvalidOnboardingState()
