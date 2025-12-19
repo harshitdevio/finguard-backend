@@ -16,7 +16,7 @@ from sqlalchemy.orm import (
 from sqlalchemy.sql import func
 
 from app.db.base import Base
-from app.db.enums import CurrencyCode, AccountStatus
+from app.domain.enums import CurrencyCode, AccountStatus, AccountTier
 from app.db.models.User.user_core import User
 
 class Account(Base):
@@ -44,3 +44,8 @@ class Account(Base):
         back_populates="account",
         cascade="all, delete-orphan"
     )
+    tier: Mapped[AccountTier] = mapped_column(
+    Enum(AccountTier),
+    nullable=False,
+    )
+    daily_limit: Mapped[int] = mapped_column(nullable=False)

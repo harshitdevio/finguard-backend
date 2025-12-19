@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from uuid import UUID
 from decimal import Decimal
 from typing import Optional
-from app.db.enums import TransactionStatus, CurrencyCode
+from app.domain.enums import TransactionStatus, CurrencyCode
 
 class TransactionCreate(BaseModel):
     idempotency_key: str

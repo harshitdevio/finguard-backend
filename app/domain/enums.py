@@ -5,6 +5,10 @@ class AccountStatus(str, PyEnum):
     FROZEN = "FROZEN"
     CLOSED = "CLOSED"
 
+class AccountTier(str, PyEnum):
+    LIMITED = "LIMITED"
+    FULL = "FULL"
+
 
 class TransactionStatus(str, PyEnum):
     PENDING = "PENDING"

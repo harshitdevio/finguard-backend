@@ -15,7 +15,7 @@ from sqlalchemy.orm import (
 from sqlalchemy.sql import func
 
 from app.db.base import Base
-from app.db.enums import CurrencyCode, TransactionStatus
+from app.domain.enums import CurrencyCode, TransactionStatus
 
 
 class Transaction(Base):

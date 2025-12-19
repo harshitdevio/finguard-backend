@@ -10,7 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.db.base import Base
-from app.db.enums import LedgerEntryType
+from app.domain.enums import LedgerEntryType
 
 class LedgerEntry(Base):
     __tablename__ = "ledger_entries"

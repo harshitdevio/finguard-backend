@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.account import Account
-from app.db.enums import CurrencyCode, AccountStatus
+from app.domain.enums import CurrencyCode, AccountStatus
 from app.db.models.User.user_core import User
 
 class AccountFactory(factory.alchemy.SQLAlchemyModelFactory):

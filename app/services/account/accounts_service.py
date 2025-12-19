@@ -4,7 +4,7 @@ from uuid import uuid4
 from decimal import Decimal
 
 from app.db.models.account import Account
-from app.db.enums import CurrencyCode
+from app.domain.enums import CurrencyCode
 from app.services.audit_log import create_audit_log
 from fastapi import HTTPException, status
 

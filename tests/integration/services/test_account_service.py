@@ -2,8 +2,8 @@ import pytest
 from decimal import Decimal
 
 from app.db.models.account import Account
-from app.db.enums import CurrencyCode
-from app.services.accounts_service import AccountService
+from app.domain.enums import CurrencyCode
+from app.services.account.accounts_service import AccountService
 from app.schemas.account import AccountCreate
 
 @pytest.mark.asyncio

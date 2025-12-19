@@ -1,7 +1,7 @@
 from datetime import datetime, date
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.enums import PreUserOnboardingState
+from app.domain.enums import PreUserOnboardingState
 from app.db.models.User.pre_user import PreUser
 from app.repository.user.pre_user import PreUserRepository
 

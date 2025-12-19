@@ -21,8 +21,14 @@ from app.services.User.preuser_profile import (
     ProfileAlreadyCompleted,
     InvalidPreUserState as ProfileInvalidState,
 )
-from app.domain.risks.evaluate import evaluate_risk, RiskDecision
+from app.domain.risks.evaluate import evaluate_risk
 from app.repository.user.pre_user import PreUserRepository
+
+from app.services.account.create_limited_account import (
+    create_limited_account,
+    RiskNotApproved,
+)
+
 
 
 class UserOnboardingError(Exception):
@@ -168,3 +174,22 @@ class UserOnboarding:
         )
 
         return decision
+
+    @staticmethod
+    async def create_limited_account(
+        *,
+        db: AsyncSession,
+        user,
+    ) -> None:
+        """
+        Step 9:
+        - Create LIMITED account after risk approval
+        """
+
+        try:
+            await create_limited_account(
+                db=db,
+                user=user,
+            )
+        except RiskNotApproved:
+            raise InvalidOnboardingState()

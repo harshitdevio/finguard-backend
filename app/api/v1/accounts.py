@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from typing import Annotated
 
 from app.schemas.account import AccountCreate
-from app.services.accounts_service import account_service
+from app.services.account.accounts_service import account_service
 from app.db.session import get_db 
 from app.db.models.User.user_core import User
 from app.auth.dependencies import get_current_user 

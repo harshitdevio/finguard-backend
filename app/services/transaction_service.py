@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from uuid import uuid4
 
-from app.db.enums import TransactionStatus
+from app.domain.enums import TransactionStatus
 from app.db.models.transaction import Transaction
 from app.db.models.account import Account
 from app.db.models.ledger_entry import LedgerEntry
