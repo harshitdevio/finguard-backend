@@ -29,6 +29,7 @@ from app.services.account.create_limited_account import (
     RiskNotApproved,
 )
 from app.services.kyc.submit_kyc import submit_kyc, KYCAlreadySubmitted
+from app.services.kyc.verify_kyc import approve_kyc, reject_kyc
 
 
 
@@ -219,3 +220,29 @@ class UserOnboarding:
 
         user.onboarding_state = OnboardingState.KYC_SUBMITTED
         await db.commit()
+
+    @staticmethod
+    async def approve_kyc(
+        *,
+        db: AsyncSession,
+        user,
+        admin_id: str = "system",
+    ) -> None:
+        await approve_kyc(
+            db=db,
+            user=user,
+            admin_id=admin_id,
+        )
+
+    @staticmethod
+    async def reject_kyc(
+        *,
+        db: AsyncSession,
+        user,
+        admin_id: str = "system",
+    ) -> None:
+        await reject_kyc(
+            db=db,
+            user=user,
+            admin_id=admin_id,
+        )

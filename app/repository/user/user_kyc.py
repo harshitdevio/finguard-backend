@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.User.user_kyc import UserKYC
@@ -39,3 +39,25 @@ class UserKYCRepository:
         await db.refresh(kyc)
         return kyc
 
+    async def update_status(
+        self,
+        *,
+        db: AsyncSession,
+        user_id,
+        status: KYCStatus,
+        verified_by: str | None = None,
+    ) -> None:
+        values = {
+            "status": status,
+            "verified_at": datetime.utcnow(),
+        }
+
+        if verified_by:
+            values["verified_by"] = verified_by
+
+        await db.execute(
+            update(UserKYC)
+            .where(UserKYC.user_id == user_id)
+            .values(**values)
+        )
+        await db.commit()
