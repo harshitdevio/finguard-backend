@@ -3,14 +3,7 @@ from datetime import datetime
 from sqlalchemy import ForeignKey, Enum, String, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
-from enum import Enum as PyEnum
-
-
-class KYCStatus(PyEnum):
-    PENDING = "PENDING"
-    APPROVED = "APPROVED"
-    REJECTED = "REJECTED"
-    RESUBMIT = "RESUBMIT"
+from app.domain.kyc.enums import KYCStatus
 
 
 class UserKYC(Base):

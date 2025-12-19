@@ -28,6 +28,7 @@ from app.services.account.create_limited_account import (
     create_limited_account,
     RiskNotApproved,
 )
+from app.services.kyc.submit_kyc import submit_kyc, KYCAlreadySubmitted
 
 
 
@@ -193,3 +194,28 @@ class UserOnboarding:
             )
         except RiskNotApproved:
             raise InvalidOnboardingState()
+    @staticmethod
+    async def submit_kyc(
+        *,
+        db: AsyncSession,
+        user,
+        document_type: str,
+        document_number: str,
+    ) -> None:
+        """
+        Step 10:
+        - Store KYC submission
+        """
+
+        try:
+            await submit_kyc(
+                db=db,
+                user=user,
+                document_type=document_type,
+                document_number=document_number,
+            )
+        except KYCAlreadySubmitted:
+            raise InvalidOnboardingState()
+
+        user.onboarding_state = OnboardingState.KYC_SUBMITTED
+        await db.commit()
