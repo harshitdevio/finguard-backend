@@ -19,10 +19,13 @@ import hashlib
 import os
 from typing import Final
 
-OTP_SECRET_KEY: Final[str | None] = os.getenv("OTP_SECRET_KEY")
+from app.core.config import settings
 
-if not OTP_SECRET_KEY:
-    raise RuntimeError("OTP_SECRET_KEY is not set")
+def _get_otp_secret_key() -> str:
+    secret = settings.otp_secret_key
+    if not secret:
+        raise RuntimeError("OTP_SECRET_KEY is not set")
+    return secret
 
 
 def _normalize_otp(otp: str) -> str:

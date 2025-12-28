@@ -18,8 +18,10 @@ class Settings(BaseSettings):
     TEST_POSTGRES_DB: str
 
     PEPPER_ENV_KEY:str 
+    OTP_SECRET_KEY: str
     class Config: 
         env_file = ".env"
         env_file_encoding = "utf-8"
+
 
 settings = Settings()
