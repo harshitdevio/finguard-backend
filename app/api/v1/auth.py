@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.schemas.User.login import RequestOTP, VerifyOTP
+from app.schemas.User.login import LoginRequestOTP as RequestOTP, LoginVerifyOTP as VerifyOTP
 from app.orchestration.UserOnboarding import UserOnboarding
 from app.auth.OTP.service import send_otp, verify_otp
 from app.schemas.User.signup import (
@@ -21,7 +21,7 @@ from app.orchestration.UserOnboarding import (
 
 
 
-router = APIRouter(tags=["Auth"])
+router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/send-otp")
 async def send_otp_route(payload: RequestOTP):

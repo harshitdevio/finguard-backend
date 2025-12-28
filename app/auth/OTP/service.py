@@ -6,7 +6,7 @@ from app.core.Utils.phone import normalize_phone
 from app.core.security.masking import _mask_phone
 from app.core.logging import get_logger
 from app.core.security.rate_limit import enforce_otp_rate_limit
-from app.core.security.hashing import hash_otp
+from app.core.security.hashing.otp import hash_otp
 from app.core.security.hashing.otp import verify_otp as hash_verify_otp
 
 from app.auth.OTP.bruteforce import (
