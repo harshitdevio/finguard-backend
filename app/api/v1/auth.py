@@ -12,9 +12,9 @@ from app.schemas.User.signup import (
     SetPasswordRequest
 )
 from app.db.session import get_db
+from app.auth.dependencies import get_verified_phone
 
 from app.orchestration.UserOnboarding import (
-    get_verified_phone, 
     PasswordAlreadySet,
     InvalidOnboardingState
 )    
@@ -44,8 +44,12 @@ async def submit_phone(payload: PhoneSubmitRequest):
 
 
 @router.post("/signup/verify-otp", response_model=OTPVerifyResponse)
-async def verify_otp_endpoint(payload: OTPVerifyRequest):
-    return await UserOnboarding.verify_otp(
+async def verify_otp_endpoint(
+    payload: OTPVerifyRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    return await UserOnboarding.verify_otp_and_create_preuser(
+        db=db,
         phone=payload.phone,
         otp=payload.otp,
     )

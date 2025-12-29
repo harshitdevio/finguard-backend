@@ -77,6 +77,10 @@ class OTPVerifyResponse(BaseModel):
         ...,
         description="Current onboarding state after OTP verification"
     )
+    temp_token: str = Field(
+        ...,
+        description="Temporary token to authorize password setting"
+    )
     
 class SetPasswordRequest(BaseModel):
     password: str = Field(

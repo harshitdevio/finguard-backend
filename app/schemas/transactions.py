@@ -20,4 +20,4 @@ class TransactionOut(BaseModel):
     currency: CurrencyCode
 
     class Config:
-        orm_mode = True
+        from_attributes = True

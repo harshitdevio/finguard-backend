@@ -31,6 +31,7 @@ from app.services.kyc.submit_kyc import submit_kyc, KYCAlreadySubmitted
 from app.services.kyc.verify_kyc import approve_kyc, reject_kyc
 from app.services.account.upgrade import upgrade_account_to_full
 from app.domain.auth.otp_purpose import OTPPurpose
+from app.core.security.tokens import create_signup_token
 
 
 class UserOnboardingError(Exception):
@@ -98,6 +99,7 @@ class UserOnboarding:
         return OTPVerifyResponse(
             phone=phone,
             status=OnboardingState.PREUSER_CREATED,
+            temp_token=create_signup_token(phone=phone),
         )
 
     @staticmethod

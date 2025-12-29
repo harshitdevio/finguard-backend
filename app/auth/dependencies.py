@@ -49,3 +49,23 @@ async def get_current_user(
 
     return user
 
+
+
+
+async def get_verified_phone(token: Annotated[str, Depends(oauth2_scheme)]) -> str:
+    try:
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+        )
+        phone = payload.get("sub")
+        token_type = payload.get("type")
+        
+        if not phone or token_type != "signup":
+            raise credentials_exception
+            
+        return phone
+        
+    except (JWTError, ValueError):
+        raise credentials_exception
