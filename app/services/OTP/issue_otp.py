@@ -1,4 +1,4 @@
-from app.core.redis import redis_client
+import app.core.redis
 from app.core.security.otp import OTP_TTL
 from app.core.security.otp import generate_otp, OTP_EXPIRY
 from app.core.security.hashing.otp import hash_otp
@@ -14,9 +14,9 @@ async def issue_otp(*, phone: str, purpose: OTPPurpose) -> str:
     otp = generate_otp()
     otp_hash = hash_otp(otp=otp, identifier=phone)
 
-    redis_key = f"otp:verify:{purpose}:{phone}"
+    redis_key = f"otp:verify:{purpose.value}:{phone}"
 
-    await redis_client.set(
+    await app.core.redis.redis_client.set(
         redis_key,
         otp_hash,
         ex=OTP_EXPIRY,

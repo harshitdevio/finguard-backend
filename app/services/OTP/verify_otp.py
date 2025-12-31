@@ -1,13 +1,14 @@
-from app.core.redis import redis_client
+import app.core.redis
 from app.auth.OTP.otp_exceptions import (
     OTPExpired,
     OTPInvalid,
 )
 from app.core.security.verify_rate_limit import enforce_otp_verify_rate_limit
 from app.core.security.hashing.otp import verify_otp as crypto_verify_otp
+from app.domain.auth.otp_purpose import OTPPurpose
 
 
-async def verify_otp_flow(*, phone: str, otp: str) -> None:
+async def verify_otp_flow(*, phone: str, otp: str, purpose: OTPPurpose) -> None:
     """
     Full OTP verification flow:
 
@@ -17,8 +18,8 @@ async def verify_otp_flow(*, phone: str, otp: str) -> None:
     4. On failure: apply rate-limit
     """
 
-    redis_key = f"otp:verify:{phone}"
-    stored_hash = await redis_client.get(redis_key)
+    redis_key = f"otp:verify:{purpose.value}:{phone}"
+    stored_hash = await app.core.redis.redis_client.get(redis_key)
 
     if not stored_hash:
         # OTP expired or never issued
@@ -36,9 +37,9 @@ async def verify_otp_flow(*, phone: str, otp: str) -> None:
         fail_key = f"otp:verify:fail:{phone}"
         lock_key = f"otp:verify:lock:{phone}"
 
-        await redis_client.delete(redis_key)
-        await redis_client.delete(fail_key)
-        await redis_client.delete(lock_key)
+        await app.core.redis.redis_client.delete(redis_key)
+        await app.core.redis.redis_client.delete(fail_key)
+        await app.core.redis.redis_client.delete(lock_key)
 
         return  # success, orchestration layer can continue
 

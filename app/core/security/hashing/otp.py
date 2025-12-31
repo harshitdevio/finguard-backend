@@ -22,7 +22,7 @@ from typing import Final
 from app.core.config import settings
 
 def _get_otp_secret_key() -> str:
-    secret = settings.otp_secret_key
+    secret = settings.OTP_SECRET_KEY
     if not secret:
         raise RuntimeError("OTP_SECRET_KEY is not set")
     return secret
@@ -71,7 +71,7 @@ def hash_otp(*, otp: str, identifier: str) -> str:
     otp = _normalize_otp(otp)
 
     message = f"{identifier}:{otp}".encode("utf-8")
-    key = OTP_SECRET_KEY.encode("utf-8")
+    key = _get_otp_secret_key().encode("utf-8")
 
     digest = hmac.new(
         key=key,
