@@ -55,21 +55,23 @@ async def test_engine():
     await engine.dispose()
 
 @pytest.fixture(scope="session", autouse=True)
-def prepare_database(test_engine):
-    sync_engine = test_engine.sync_engine
-
-    with sync_engine.begin() as conn:
-        Base.metadata.drop_all(conn)
-        Base.metadata.create_all(conn)
+async def prepare_database(test_engine):
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
 
 @pytest.fixture
 async def async_db(test_engine):
     async_session = async_sessionmaker(test_engine, class_=AsyncSession)
 
     async with async_session() as session:
-        trans = await session.begin()         
-        yield session
-        await trans.rollback() 
+        trans = await session.begin()
+        try:
+            yield session
+        finally:
+            if trans.is_active:
+                await trans.rollback()
+
    
 @pytest.fixture
 async def test_user(async_db):
@@ -94,7 +96,7 @@ async def test_user(async_db):
 
 # FastAPI App + Override get_db
 @pytest.fixture()
-def integration_app(async_db) -> FastAPI:
+async def integration_app(async_db) -> FastAPI:
     """
     Provide the real FastAPI app but override the DB dependency
     so routes use this test session.
@@ -135,4 +137,4 @@ async def clean_state(async_db: AsyncSession):
         yield
     finally:
         await async_db.rollback()
-        await async_db.expire_all()
+        async_db.expire_all()
