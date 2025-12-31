@@ -157,3 +157,12 @@ async def clear_redis():
     Integration tests MUST NOT leak state.
     """
     await app.core.redis.redis_client.flushdb()
+
+@pytest.fixture
+def mock_sms_provider():
+    """
+    Mock external SMS side-effect.
+    OTP logic must still execute.
+    """
+    with patch("app.interegation.SMS.console.ConsoleSMSProvider.send") as mock_send:
+        yield mock_send

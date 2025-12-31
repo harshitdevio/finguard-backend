@@ -10,16 +10,6 @@ from tests.factories.user_factory import create_user
 
 ENDPOINT = "/v1/auth/signup/phone"
 
-
-@pytest.fixture
-def mock_sms_provider():
-    """
-    Mock external SMS side-effect.
-    OTP logic must still execute.
-    """
-    with patch("app.interegation.SMS.console.ConsoleSMSProvider.send") as mock_send:
-        yield mock_send
-
 @pytest.mark.asyncio
 async def test_signup_phone_happy_path(
     integration_client: AsyncClient,
