@@ -28,11 +28,10 @@ password = os.getenv("TEST_POSTGRES_PASSWORD")
 db = os.getenv("TEST_POSTGRES_DB")
 
 
-@pytest.fixture(scope="session")
-def event_loop():
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
+
+
+
+
 
 # Temporary Postgres Via Docker
 @pytest.fixture(scope="session")

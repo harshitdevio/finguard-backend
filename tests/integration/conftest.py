@@ -32,14 +32,22 @@ async def redis_test():
     await client.flushall()
     await client.close()
 
-@pytest.fixture(scope="session")
-def event_loop():
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
+from unittest.mock import patch
+
+@pytest.fixture(autouse=True)
+async def patch_redis_client_global(redis_test):
+    """
+    Patch the global redis_client with the test-scoped redis_test client.
+    This ensures app code uses the test redis and the correct event loop.
+    """
+    with patch("app.core.redis.redis_client", redis_test):
+        yield
 
 
-@pytest.fixture(scope="session")
+
+
+
+@pytest.fixture
 async def test_engine():
     """
     A dedicated engine for integration tests.
@@ -54,7 +62,7 @@ async def test_engine():
     yield engine
     await engine.dispose()
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(autouse=True)
 async def prepare_database(test_engine):
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
