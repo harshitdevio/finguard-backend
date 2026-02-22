@@ -88,7 +88,7 @@ class UserOnboarding:
         normalized_phone = normalize_phone(phone)
 
         await verify_otp_flow(
-            phone=phone,
+            phone=normalized_phone,
             otp=otp,
             purpose=OTPPurpose.SIGNUP,
         )
@@ -259,3 +259,4 @@ class UserOnboarding:
         - Upgrade account to FULL tier
         """
         await upgrade_account_to_full(db=db, account=account)
+
