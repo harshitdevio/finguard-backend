@@ -6,13 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.User.pre_user import PreUser
 
-
 class PreUserRepository:
     """
-    Repository layer for PreUser entity.
-
-    Handles all database operations related to PreUser, including
-    CRUD and state management. Designed for async usage with SQLAlchemy.
+    Handles persistence for users who haven't finished signing up yet.
+    Mainly used to track where a user is in the onboarding flow.
     """
 
     async def upsert_by_phone(
@@ -23,15 +20,8 @@ class PreUserRepository:
         onboarding_state: str,
     ) -> PreUser:
         """
-        Insert a new PreUser if phone does not exist, otherwise update the onboarding_state.
-
-        Args:
-            db (AsyncSession): SQLAlchemy async session.
-            phone (str): Phone number of the PreUser.
-            onboarding_state (str): Current onboarding state.
-
-        Returns:
-            PreUser: The created or updated PreUser instance.
+        Check if we've seen this phone number before. If yes, just update their 
+        progress; if not, create a new record so they can start onboarding.
         """
         result = await db.execute(
             select(PreUser).where(PreUser.phone == phone)
@@ -49,22 +39,12 @@ class PreUserRepository:
 
         await db.commit()
         await db.refresh(preuser)
-        await db.flush()
         return preuser
 
     async def get_by_phone(self, db: AsyncSession, phone: str) -> PreUser:
         """
-        Retrieve a PreUser by phone number.
-
-        Args:
-            db (AsyncSession): SQLAlchemy async session.
-            phone (str): Phone number to search.
-
-        Returns:
-            PreUser: The matching PreUser.
-
-        Raises:
-            NoResultFound: If no PreUser exists with the given phone.
+        Find a specific pre-user using their phone number. 
+        Throws an error if the phone number isn't in our system.
         """
         result = await db.execute(
             select(PreUser).where(PreUser.phone == phone)
@@ -73,17 +53,7 @@ class PreUserRepository:
 
     async def get(self, db: AsyncSession, preuser_id: int) -> PreUser:
         """
-        Retrieve a PreUser by primary key ID.
-
-        Args:
-            db (AsyncSession): SQLAlchemy async session.
-            preuser_id (int): The ID of the PreUser.
-
-        Returns:
-            PreUser: The matching PreUser.
-
-        Raises:
-            NoResultFound: If no PreUser exists with the given ID.
+        Fetch a pre-user by their internal database ID.
         """
         result = await db.execute(
             select(PreUser).where(PreUser.id == preuser_id)
@@ -98,12 +68,7 @@ class PreUserRepository:
         onboarding_state: str,
     ) -> None:
         """
-        Update only the onboarding_state of a PreUser.
-
-        Args:
-            db (AsyncSession): SQLAlchemy async session.
-            preuser_id (int): ID of the PreUser.
-            onboarding_state (str): New onboarding state.
+        Quickly update which step of the signup process the user is currently on.
         """
         await db.execute(
             update(PreUser)
@@ -119,15 +84,8 @@ class PreUserRepository:
         profile_data: dict[str, Any],
     ) -> None:
         """
-        Update multiple fields of a PreUser's profile.
-
-        Args:
-            db (AsyncSession): SQLAlchemy async session.
-            preuser_id (int): ID of the PreUser.
-            profile_data (dict[str, Any]): Key-value pairs of fields to update.
-
-        Warning:
-            Ensure keys in profile_data match model columns to avoid runtime errors.
+        Bulk update multiple profile fields at once. 
+        Make sure the keys in 'profile_data' actually exist on the PreUser model.
         """
         await db.execute(
             update(PreUser)
@@ -135,4 +93,3 @@ class PreUserRepository:
             .values(**profile_data)
         )
         await db.commit()
-
