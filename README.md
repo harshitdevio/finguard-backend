@@ -1,224 +1,95 @@
-## TL;DR
-A production-inspired authentication and onboarding backend that demonstrates:
-- OTP-based login
-- State-driven user onboarding (LIMITED → FULL)
-- JWT access + refresh token issuance
-- Redis-backed rate limiting
-- Async, layered architecture with FastAPI
+# FinGuard
 
-  
+FinGuard is a **ledger-backed, state-machine driven financial backend API** built using **FastAPI**, **SQLAlchemy (Async PostgreSQL)**, and **Redis**. The project focuses on correctness, consistency, and security by applying backend engineering principles commonly used in financial systems.
 
-📄 API Docs: (https://finguard-backend-4o9g.onrender.com/docs)  
-📦 Deployed on Render  
-🐳 Dockerized for local & prod parity
+## Core Features
 
+### 1. Explicit State Machine
 
+User onboarding is driven by a strict **10-state finite state machine**, preventing invalid state transitions and partially registered accounts. Every operation validates its required preconditions before execution.
 
-# user-onboarding-service
-
-**Production-inspired backend authentication service** built with FastAPI and async SQLAlchemy.  
-Demonstrates OTP-based authentication, state-driven onboarding, token issuance, and modular architecture inspired by real-world product flows.
-
-## 🎯 Purpose
-Most real-world authentication systems go beyond simple email/password flows.
-This project is inspired by patterns commonly seen in fintech and high-security products, such as OTP-based signup and state-driven onboarding.
-
-It demonstrates how production backend systems handle:
-- Multi-step onboarding
-- Explicit account state transitions
-- Partial users flows
-- Security and abuse prevention
-
-The goal is to showcase how complex authentication and onboarding flows can be orchestrated in a modular, testable, and async-first backend architecture.
-
-
-
----
-
-## 🚀 Key Features
-
-- State-driven authentication & onboarding engine
-- OTP-based identity verification with abuse protection
-- Explicit account lifecycle: UNVERIFIED → LIMITED → FULL
-- JWT access & refresh token model with scoped permissions
-- Redis-backed rate limiting for OTP and login attempts
-- Async-first, layered architecture
-
-## 🔐 Authentication & Onboarding Flow
-The system models real-world signup and login flows as explicit state transitions rather than implicit conditionals.
-```
-1. Phone number submitted
-2. Rate-limit and abuse checks
-3. OTP issued
-4. OTP verified
-        │
-
-        ├── Signup Flow
-        │
-        │   S1. PreUser created (UNVERIFIED, temporary user record)
-        │   S2. Credentials set (hashed)
-        │   S3. Basic profile completed
-        │   S4. Risk gate evaluation
-        │   S5. Limited account created
-        │   S6. KYC details submitted
-        │   S7. KYC verified
-        │   S8. Account upgraded to FULL
-        │
-        └── Login Flow
-            L1. Identity lookup
-            L2. User status validated (ACTIVE / BLOCKED)
-            L3. Account state guard (LIMITED / FULL)
-            L4. Step-up check (PIN / secondary auth)
-            L5. Token issuance (scoped access + refresh)
-            L6. Login result contract (auth state, account tier, token payload)
+```text
+┌─────────────────────────────────────────┐
+│ 01. PHONE_SUBMITTED                     │
+└────────────────────┬────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────┐
+│ 02. OTP_SENT                            │
+└────────────────────┬────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────┐
+│ 03. OTP_VERIFIED                        │
+└────────────────────┬────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────┐
+│ 04. PREUSER_CREATED                     │
+└────────────────────┬────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────┐
+│ 05. CREDENTIALS_SET                     │
+└────────────────────┬────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────┐
+│ 06. PROFILE_COMPLETED                   │
+└────────────────────┬────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────┐
+│ 07. RISK_PASSED                         │
+└────────────────────┬────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────┐
+│ 08. LIMITED_ACCOUNT                     │
+└────────────────────┬────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────┐
+│ 09. KYC_SUBMITTED                       │
+└────────────────────┬────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────┐
+│ 10. KYC_VERIFIED / FULL_ACCESS          │
+└─────────────────────────────────────────┘
 ```
 
-## 📘 API Documentation
-Interactive API documentation is available via Swagger UI.
+### 2. Double-Entry Ledger Accounting
 
-👉 https://finguard-backend-4o9g.onrender.com/docs#/Auth/submit_phone_v1_auth_signup_phone_post
+Account balances are **never modified directly** with simple `UPDATE` statements. Every transfer generates balanced **DEBIT** and **CREDIT** ledger entries within the same database transaction, providing a complete, auditable history of every financial operation.
 
-## ⚡ Try It in 60 Seconds
+### 3. ACID Transactions
 
-### Demo Rules
-- OTP verification is mocked in demo mode
-- **OTP value is always:** `000000`
-- OTP rate-limits are enforced but reset automatically
-- KYC, risk evaluation, and compliance steps are stubbed
-- Focus is on backend flow orchestration
+All financial operations execute within a single atomic database transaction. Balance updates, transaction creation, and ledger entries either **all succeed or all roll back**, ensuring the system can never enter a partially completed financial state.
 
----
+### 4. Idempotent Transaction Processing
 
-## 🔄 End-to-End Signup Flow
+Transactional endpoints require a unique **idempotency key**. If a client retries a request due to network failures or timeouts, FinGuard detects the existing transaction and returns the original response instead of executing the business logic again, preventing duplicate transfers.
 
-### 1. Send OTP (Rate-limit + Abuse Checks)
+### 5. Race Condition Protection
 
-```bash
-curl -X POST https://finguard-backend-4o9g.onrender.com/v1/auth/send-otp \
-  -H "Content-Type: application/json" \
-  -d '{
-    "phone": "+15555555555"
-  }'
-```
+To prevent double-spending and stale reads during concurrent transfers, FinGuard uses PostgreSQL's pessimistic row locking (`SELECT ... FOR UPDATE`). Account rows remain locked until the active transaction completes, forcing competing requests to execute sequentially.
 
----
+### 6. Multi-Layer Cryptography
 
-### 2. Verify OTP
+Different categories of sensitive data are protected using cryptographic primitives appropriate to their purpose and lifetime.
 
-```bash
-curl -X POST https://finguard-backend-4o9g.onrender.com/v1/auth/verify-otp \
-  -H "Content-Type: application/json" \
-  -d '{
-    "phone": "+15555555555",
-    "otp": "000000"
-  }'
-```
+- **Passwords & PINs** — Peppered **Argon2id** hashing
+- **OTPs** — **HMAC-SHA256** hashing stored exclusively in Redis with TTL expiration
+- **KYC Document References** — **SHA-256** hashing before persistence
 
----
+This ensures sensitive information is never stored in plaintext while significantly reducing the impact of a database compromise.
 
-### 3. Start Signup (PreUser Creation)
+> [!NOTE]
+> **FinGuard** is primarily a backend architecture project built to demonstrate system design, authentication and onboarding orchestration, state-driven workflows, and financial backend design patterns rather than a production-ready fintech product.
+>
+> Fintech-specific processes such as KYC verification, fraud detection, AML screening, and regulatory compliance are intentionally simplified or mocked. The focus of the project is on backend architecture, service boundaries, state management, security controls, transactional correctness, and financial system design—not regulatory implementation.|
 
-```bash
-curl -X POST https://finguard-backend-4o9g.onrender.com/v1/auth/signup/phone \
-  -H "Content-Type: application/json" \
-  -d '{
-    "phone": "+15555555555"
-  }'
-```
+## License
 
----
-
-### 4. Verify Signup OTP
-
-```bash
-curl -X POST https://finguard-backend-4o9g.onrender.com/v1/auth/signup/verify-otp \
-  -H "Content-Type: application/json" \
-  -d '{
-    "phone": "+15555555555",
-    "otp": "000000"
-  }'
-```
-
----
-
-### 5. Set Password
-
-```bash
-curl -X POST https://finguard-backend-4o9g.onrender.com/v1/auth/signup/set-password \
-  -H "Content-Type: application/json" \
-  -d '{
-    "phone": "+15555555555",
-    "password": "StrongPassword@123"
-  }'
-```
-
----
-
-## 🔁 Modeled Account Lifecycle
-
-```
-UNVERIFIED (PreUser)
-   ↓
-OTP Verified
-   ↓
-Credentials Set
-   ↓
-LIMITED Account
-   ↓
-(KYC + Risk Evaluation — Stubbed)
-   ↓
-FULL Account
-```
-
----
-## 🛠️ Tech Stack
-
-![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.104-green?logo=fastapi&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14-blue?logo=postgresql&logoColor=white)
-![Redis](https://img.shields.io/badge/Redis-7-orange?logo=redis&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-24-blue?logo=docker&logoColor=white)
-![Pydantic](https://img.shields.io/badge/Pydantic-v2-E92063?logo=pydantic&logoColor=white)
-![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.x-red?logo=sqlalchemy&logoColor=white)
-![Pytest](https://img.shields.io/badge/Pytest-Testing-blue?logo=pytest&logoColor=white)
-![Docker%20Compose](https://img.shields.io/badge/Docker%20Compose-Orchestration-blue?logo=docker&logoColor=white)
-
-
-
-## 📂 Project Structure
-```
-├── app/
-│   ├── api/         
-│   ├── auth/           
-│   ├── core/           
-│   ├── db/            
-│   ├── domain/         
-│   ├── orchestration/ 
-│   ├── repository/    
-│   ├── schemas/    
-│   ├── services/       
-│   └── main.py        
-│
-├── alembic/            
-├── tests/              
-├── Dockerfile  
-├── docker-compose.yml  
-├── pyproject.toml  
-└── README.md
-```
-```
-
-This structure separates domain logic, orchestration, and infrastructure concerns to keep business rules independent from frameworks and external services.
-
-```
-
-> **Note**: KYC, risk evaluation, and external compliance-related components are intentionally mocked or simplified. The goal is to demonstrate backend system design, flow orchestration, and code structure, not real-world fintech compliance.
-
-
-
-
-
-
-
-
-
+This project is licensed under the Apache License 2.0. See the LICENSE file for details.
