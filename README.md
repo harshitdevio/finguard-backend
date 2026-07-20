@@ -83,12 +83,18 @@ Different categories of sensitive data are protected using cryptographic primiti
 - **OTPs** — **HMAC-SHA256** hashing stored exclusively in Redis with TTL expiration
 - **KYC Document References** — **SHA-256** hashing before persistence
 
-This ensures sensitive information is never stored in plaintext while significantly reducing the impact of a database compromise.
+This ensures sensitive information is never stored in plaintext while significantly reducing the impact of a database compromise. 
+
+---
+
+Live link: https://finguard-backend-4o9g.onrender.com/docs
+
+---
 
 > [!NOTE]
-> **FinGuard** is primarily a backend architecture project built to demonstrate system design, authentication and onboarding orchestration, state-driven workflows, and financial backend design patterns rather than a production-ready fintech product.
+> **FinGuard** is primarily a backend architecture project built to demonstrate system design architecture, authentication and onboarding orchestration, state-driven workflows, and financial backend design patterns rather than a production-ready fintech product.
 >
-> Fintech-specific processes such as KYC verification, fraud detection, AML screening, and regulatory compliance are intentionally simplified or mocked. The focus of the project is on backend architecture, service boundaries, state management, security controls, transactional correctness, and financial system design—not regulatory implementation.|
+> Fintech-specific processes such as KYC verification, fraud detection, AML screening, and regulatory compliance are intentionally simplified or mocked. The focus of the project is on backend architecture, service boundaries, state management, security controls, transactional correctness, and financial system design, not regulatory implementation.
 
 ## License
 
